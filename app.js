@@ -164,9 +164,9 @@ function receivedMessage(event) {
 }
 
 
-function handleMessageAttachments(messageAttachments, senderID){
+function handleMessageAttachments(messageAttachments, senderID) {
 	//for now just reply
-	sendTextMessage(senderID, "Attachment received. Thank you.");	
+	sendTextMessage(senderID, "Attachment received. Thank you.");
 }
 
 function handleQuickReply(senderID, quickReply, messageId) {
@@ -184,6 +184,28 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
+		case "job-enquiry":
+			{
+				let reply = [{
+						"content_type": "text",
+						"title": "Accountant",
+						"payload": "Accountant"
+					},
+					{
+						"content_type": "text",
+						"title": "Sales assistant",
+						"payload": "Sales"
+					},
+					{
+						"content_type": "text",
+						"title": "Not Interested",
+						"payload": "Not Interested"
+					}
+				]
+
+				sendQuickReply(sender, responseText, reply)
+			}
+			break;
 		default:
 			//unhandled action, just send back the text
 			sendTextMessage(sender, responseText);
@@ -198,8 +220,7 @@ function handleMessage(message, sender) {
 		case 2: //quick replies
 			let replies = [];
 			for (var b = 0; b < message.replies.length; b++) {
-				let reply =
-				{
+				let reply = {
 					"content_type": "text",
 					"title": message.replies[b],
 					"payload": message.replies[b]
@@ -256,7 +277,7 @@ function handleCardMessages(messages, sender) {
 
 		let element = {
 			"title": message.title,
-			"image_url":message.imageUrl,
+			"image_url": message.imageUrl,
 			"subtitle": message.subtitle,
 			"buttons": buttons
 		};
@@ -278,24 +299,24 @@ function handleApiAiResponse(sender, response) {
 
 	if (isDefined(messages) && (messages.length == 1 && messages[0].type != 0 || messages.length > 1)) {
 		let timeoutInterval = 1100;
-		let previousType ;
+		let previousType;
 		let cardTypes = [];
 		let timeout = 0;
 		for (var i = 0; i < messages.length; i++) {
 
-			if ( previousType == 1 && (messages[i].type != 1 || i == messages.length - 1)) {
+			if (previousType == 1 && (messages[i].type != 1 || i == messages.length - 1)) {
 
 				timeout = (i - 1) * timeoutInterval;
 				setTimeout(handleCardMessages.bind(null, cardTypes, sender), timeout);
 				cardTypes = [];
 				timeout = i * timeoutInterval;
 				setTimeout(handleMessage.bind(null, messages[i], sender), timeout);
-			} else if ( messages[i].type == 1 && i == messages.length - 1) {
+			} else if (messages[i].type == 1 && i == messages.length - 1) {
 				cardTypes.push(messages[i]);
-                		timeout = (i - 1) * timeoutInterval;
-                		setTimeout(handleCardMessages.bind(null, cardTypes, sender), timeout);
-                		cardTypes = [];
-			} else if ( messages[i].type == 1 ) {
+				timeout = (i - 1) * timeoutInterval;
+				setTimeout(handleCardMessages.bind(null, cardTypes, sender), timeout);
+				cardTypes = [];
+			} else if (messages[i].type == 1) {
 				cardTypes.push(messages[i]);
 			} else {
 				timeout = i * timeoutInterval;
@@ -514,7 +535,7 @@ function sendGenericMessage(recipientId, elements) {
 
 
 function sendReceiptMessage(recipientId, recipient_name, currency, payment_method,
-							timestamp, elements, address, summary, adjustments) {
+	timestamp, elements, address, summary, adjustments) {
 	// Generate a random receipt ID as the API requires a unique ID
 	var receiptId = "order" + Math.floor(Math.random() * 1000);
 
@@ -555,7 +576,7 @@ function sendQuickReply(recipientId, text, replies, metadata) {
 		},
 		message: {
 			text: text,
-			metadata: isDefined(metadata)?metadata:'',
+			metadata: isDefined(metadata) ? metadata : '',
 			quick_replies: replies
 		}
 	};
@@ -631,7 +652,7 @@ function sendAccountLinking(recipientId) {
 					buttons: [{
 						type: "account_link",
 						url: config.SERVER_URL + "/authorize"
-          }]
+					}]
 				}
 			}
 		}
@@ -724,7 +745,7 @@ function receivedPostback(event) {
 		default:
 			//unindentified payload
 			sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
-			break;
+		break;
 
 	}
 
