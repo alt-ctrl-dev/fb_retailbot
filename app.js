@@ -433,7 +433,11 @@ function sendToApiAi(sender, text) {
 		}
 	});
 
-	apiaiRequest.on('error', (error) => console.error(error));
+	apiaiRequest.on('error', (error) => {
+		console.error(error)
+		sendTextMessage(sender, "Opps, something went wrong. Could not get any open jobs.");
+		sendTypingOff(sender);
+	});
 	apiaiRequest.end();
 }
 
@@ -443,6 +447,7 @@ function sendEmail(emailSubject, emailContent) {
 }
 
 function sendTextMessage(recipientId, text) {
+	console.log(`sending message to ${text} to ${recipientId}`);
 	var messageData = {
 		recipient: {
 			id: recipientId
@@ -824,7 +829,7 @@ function receivedPostback(event) {
 			break;
 		case 'JOB_APPLY':
 			//get feedback with new jobs
-			sendToApiAi(senderID, "job apply");
+			sendToApiAi(senderID, "job openings");
 			break;
 		case 'CHAT':
 			//user wants to chat
