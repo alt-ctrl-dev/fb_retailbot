@@ -184,6 +184,34 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
+		case "faq-delivery":
+			sendTextMessage(sender, responseText);
+			sendTypingOn(sender);
+
+			//ask what user wants to do next
+			setTimeout(function () {
+				let buttons = [{
+						type: "web_url",
+						url: "https://www.myapple.com/track_order",
+						title: "Track my order"
+					},
+					{
+						type: "phone_number",
+						title: "Call us",
+						payload: "+16505551234",
+					},
+					{
+						type: "postback",
+						title: "Keep on Chatting",
+						payload: "CHAT"
+					}
+				];
+
+				sendButtonMessage(sender, "What would you like to do next?", buttons);
+			}, 3000)
+
+
+			break;
 		case "job-enquiry":
 			{
 				let reply = [{
@@ -205,6 +233,53 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 
 				sendQuickReply(sender, responseText, reply)
 			}
+			break;
+
+		case "detailed-application":
+			if (isDefined(contexts[0]) &&
+				(contexts[0].name == 'job_application' || contexts[0].name == 'job-application-details_dialog_context') && contexts[0].parameters) {
+				let phone_number = (isDefined(contexts[0].parameters['phone-number']) &&
+					contexts[0].parameters['phone-number'] != '') ? contexts[0].parameters['phone-number'] : '';
+				let user_name = (isDefined(contexts[0].parameters['user-name']) &&
+					contexts[0].parameters['user-name'] != '') ? contexts[0].parameters['user-name'] : '';
+				let previous_job = (isDefined(contexts[0].parameters['previous-job']) &&
+					contexts[0].parameters['previous-job'] != '') ? contexts[0].parameters['previous-job'] : '';
+				let years_of_experience = (isDefined(contexts[0].parameters['years-of-experience']) &&
+					contexts[0].parameters['years-of-experience'] != '') ? contexts[0].parameters['years-of-experience'] : '';
+				let job_vacancy = (isDefined(contexts[0].parameters['job-vacancy']) &&
+					contexts[0].parameters['job-vacancy'] != '') ? contexts[0].parameters['job-vacancy'] : '';
+
+				if (phone_number == '' && user_name != '' && previous_job != '' && years_of_experience == '') {
+					let replies = [{
+							"content_type": "text",
+							"title": "Less than 1 year",
+							"payload": "Less than 1 year"
+						},
+						{
+							"content_type": "text",
+							"title": "Less than 10 year",
+							"payload": "Less than 10 year"
+						},
+						{
+							"content_type": "text",
+							"title": "More than 10 years",
+							"payload": "More than 10 years"
+						}
+					];
+					sendQuickReply(sender, responseText, replies);
+				} else if (phone_number != '' && user_name != '' && previous_job != '' && years_of_experience != '' && job_vacancy != '') {
+					let emailContent = 'A new job enquiry from ' + user_name + ' for the job: ' + job_vacancy +
+						'.<br> Previous job position: ' + previous_job + '.' +
+						'.<br> Years of experience: ' + years_of_experience + '.' +
+						'.<br> Phone number: ' + phone_number + '.';
+
+					sendEmail('New job application', emailContent);
+					sendTextMessage(sender, responseText);
+				} else {
+					sendTextMessage(sender, responseText);
+				}
+			}
+
 			break;
 		default:
 			//unhandled action, just send back the text
@@ -363,7 +438,9 @@ function sendToApiAi(sender, text) {
 }
 
 
-
+function sendEmail(emailSubject, emailContent) {
+	console.log(`sending email: ${emailSubject} - ${emailContent}`)
+}
 
 function sendTextMessage(recipientId, text) {
 	var messageData = {
