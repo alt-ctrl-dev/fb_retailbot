@@ -824,12 +824,29 @@ function receivedPostback(event) {
 			break;
 		case 'JOB_APPLY':
 			//get feedback with new jobs
-			sendToApiAi(senderID, "job openings");
+			sendToApiAi(senderID, event.message.text);
 			break;
 		case 'CHAT':
 			//user wants to chat
 			sendTextMessage(senderID, "I love chatting too. Do you have any other questions for me?");
 			break;
+		case 'CONTACT_INFO':
+			//TODO user wants Contact Info 
+			let buttons = [{
+					type: "phone_number",
+					title: "Call us",
+					payload: "+16505551234",
+				},
+				{
+					type: "postback",
+					title: "Keep on Chatting",
+					payload: "CHAT"
+				}
+			];
+
+			sendButtonMessage(senderID, "What would you like to do next?", buttons);
+			break;
+
 		default:
 			//unindentified payload
 			sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
