@@ -819,10 +819,16 @@ function receivedPostback(event) {
 	var payload = event.postback.payload;
 
 	switch (payload) {
-		case "CHAT":
-			{
-				sendTextMessage(senderID, "Aww! I like chatting with you too!");
-			}
+		case 'GET_STARTED':
+			greetUserText(senderID);
+			break;
+		case 'JOB_APPLY':
+			//get feedback with new jobs
+			sendToApiAi(senderID, "job openings");
+			break;
+		case 'CHAT':
+			//user wants to chat
+			sendTextMessage(senderID, "I love chatting too. Do you have any other questions for me?");
 			break;
 		default:
 			//unindentified payload
