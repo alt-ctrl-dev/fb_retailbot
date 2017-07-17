@@ -1,7 +1,7 @@
 'use strict';
 
 const apiai = require('apiai');
-const config = require('./config');
+
 const express = require('express');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
@@ -11,23 +11,33 @@ const uuid = require('uuid');
 
 
 // Messenger API parameters
-if (!config.FB_PAGE_TOKEN) {
+if (!process.env.FB_PAGE_TOKEN) {
 	throw new Error('missing FB_PAGE_TOKEN');
 }
-if (!config.FB_VERIFY_TOKEN) {
+if (!process.env.FB_VERIFY_TOKEN) {
 	throw new Error('missing FB_VERIFY_TOKEN');
 }
-if (!config.API_AI_CLIENT_ACCESS_TOKEN) {
+if (!process.env.API_AI_CLIENT_ACCESS_TOKEN) {
 	throw new Error('missing API_AI_CLIENT_ACCESS_TOKEN');
 }
-if (!config.FB_APP_SECRET) {
+if (!process.env.FB_APP_SECRET) {
 	throw new Error('missing FB_APP_SECRET');
 }
-if (!config.SERVER_URL) { //used for ink to static files
+if (!process.env.SERVER_URL) { //used for ink to static files
+	throw new Error('missing SERVER_URL');
+}
+if (!process.env.WEATHER_API_KEY) { //used for ink to static files
 	throw new Error('missing SERVER_URL');
 }
 
-
+const config = {
+	FB_PAGE_TOKEN: process.env.FB_PAGE_TOKEN,
+	FB_VERIFY_TOKEN: process.env.FB_VERIFY_TOKEN,
+	API_AI_CLIENT_ACCESS_TOKEN: process.env.API_AI_CLIENT_ACCESS_TOKEN,
+	FB_APP_SECRET: process.env.FB_APP_SECRET,
+	SERVER_URL: process.env.SERVER_URL,
+	WEATHER_API_KEY: process.env.WEATHER_API_KEY
+};
 
 app.set('port', (process.env.PORT || 5000))
 
@@ -87,6 +97,7 @@ app.post('/webhook/', function (req, res) {
 
 	// Make sure this is a page subscription
 	if (data.object == 'page') {
+
 		// Iterate over each entry
 		// There may be multiple if batched
 		data.entry.forEach(function (pageEntry) {
@@ -184,6 +195,37 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
+		case "get-current-weather":
+			if (parameters.hasOwnProperty("geo-city") && parameters["geo-city"] != '') {
+
+				var request = require('request');
+
+				request({
+					url: 'http://api.openweathermap.org/data/2.5/weather', //URL to hit
+					qs: {
+						appid: config.WEATHER_API_KEY,
+						q: parameters["geo-city"]
+					}, //Query string data
+				}, function (error, response, body) {
+					if (!error && response.statusCode == 200) {
+						let weather = JSON.parse(body);
+						if (weather.hasOwnProperty("weather")) {
+							let reply = `${responseText} ${weather["weather"][0]["description"]}`;
+							sendTextMessage(sender, reply);
+						} else {
+							sendTextMessage(sender,
+								`No weather forecast available for ${parameters["geo-city"]}`);
+						}
+					} else {
+						console.error(response.error);
+						sendTextMessage(sender,
+							`Could not retrieve weather details for ${parameters["geo-city"]}`);
+					}
+				});
+			} else {
+				sendTextMessage(sender, responseText);
+			}
+			break;
 		case "faq-delivery":
 			sendTextMessage(sender, responseText);
 			sendTypingOn(sender);
@@ -455,7 +497,7 @@ function sendToApiAi(sender, text) {
 
 	apiaiRequest.on('error', (error) => {
 		console.error(error)
-		sendTextMessage(sender, "Opps, something went wrong. Could not get any open jobs.");
+		sendTextMessage(sender, "Opps, something went wrong.");
 		sendTypingOff(sender);
 	});
 	apiaiRequest.end();
