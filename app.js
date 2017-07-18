@@ -206,7 +206,7 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 					qs: {
 						appid: config.WEATHER_API_KEY,
 						q: parameters["geo-city"],
-						units: metric
+						units: "metric"
 					}, //Query string data
 				}, function (error, response, body) {
 					if (!error && response.statusCode == 200) {
