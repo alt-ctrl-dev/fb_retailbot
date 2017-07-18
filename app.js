@@ -214,11 +214,11 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 						if (weather.hasOwnProperty("weather")) {
 							let desc = `Weather condition for today: ${weather["weather"][0]["description"]}`;
 							//sendTextMessage(sender, desc);
-							let temp = `Current temperature: ${weather["main"]["temp"]}`;
+							let temp = `Current temperature: ${weather["main"]["temp"]} °C`;
 							//sendTextMessage(sender, temp);
-							let temp_min = `Min temperature: ${weather["main"]["temp_min"]}`;
+							let temp_min = `Min temperature: ${weather["main"]["temp_min"]} °C`;
 							//sendTextMessage(sender, temp_min);
-							let temp_max = `Max temperature: ${weather["main"]["temp_max"]}`;
+							let temp_max = `Max temperature: ${weather["main"]["temp_max"]} °C`;
 							sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
 						} else {
 							sendTextMessage(sender,
