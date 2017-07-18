@@ -195,6 +195,7 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
+		case "current-weather":
 		case "get-current-weather":
 			if (parameters.hasOwnProperty("geo-city") && parameters["geo-city"] != '') {
 
