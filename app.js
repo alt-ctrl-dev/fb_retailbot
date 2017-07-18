@@ -204,18 +204,22 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 					url: 'http://api.openweathermap.org/data/2.5/weather', //URL to hit
 					qs: {
 						appid: config.WEATHER_API_KEY,
-						q: parameters["geo-city"]
+						q: parameters["geo-city"],
+						units: "metric"
 					}, //Query string data
 				}, function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						let weather = JSON.parse(body);
 						console.log(weather);
 						if (weather.hasOwnProperty("weather")) {
-							let reply = `Weather condition for today: ${weather["weather"][0]["description"]}
-										 Current temperature: ${weather["main"]["temp"]}
-										 Min temperature: ${weather["main"]["temp_min"]}
-										 Max temperature: ${weather["main"]["temp_max"]}`;
-							sendTextMessage(sender, reply);
+							let desc = `Weather condition for today: ${weather["weather"][0]["description"]}`;
+							sendTextMessage(sender, desc);
+							let temp = `Current temperature: ${weather["main"]["temp"]}`;
+							sendTextMessage(sender, temp);
+							let temp_min = `Min temperature: ${weather["main"]["temp_min"]}`;
+							sendTextMessage(sender, temp_min);
+							let temp_max = `Max temperature: ${weather["main"]["temp_max"]}`;
+							sendTextMessage(sender, temp_max);
 						} else {
 							sendTextMessage(sender,
 								`No weather forecast available for ${parameters["geo-city"]}`);
