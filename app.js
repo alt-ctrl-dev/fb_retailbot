@@ -213,13 +213,13 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 						console.log(weather);
 						if (weather.hasOwnProperty("weather")) {
 							let desc = `Weather condition for today: ${weather["weather"][0]["description"]}`;
-							sendTextMessage(sender, desc);
+							//sendTextMessage(sender, desc);
 							let temp = `Current temperature: ${weather["main"]["temp"]}`;
-							sendTextMessage(sender, temp);
+							//sendTextMessage(sender, temp);
 							let temp_min = `Min temperature: ${weather["main"]["temp_min"]}`;
-							sendTextMessage(sender, temp_min);
+							//sendTextMessage(sender, temp_min);
 							let temp_max = `Max temperature: ${weather["main"]["temp_max"]}`;
-							sendTextMessage(sender, temp_max);
+							sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
 						} else {
 							sendTextMessage(sender,
 								`No weather forecast available for ${parameters["geo-city"]}`);
