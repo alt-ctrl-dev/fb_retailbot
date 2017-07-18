@@ -206,37 +206,7 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 				} else {
 					sendTextMessage(sender,
 						`No matching account ID exist. Move-in to ${parameters["address"]} for ${parameters["date"]} will be cancelled`);
-				}
-				request({
-					url: 'http://api.openweathermap.org/data/2.5/weather', //URL to hit
-					qs: {
-						appid: config.WEATHER_API_KEY,
-						q: parameters["geo-city"],
-						units: "metric"
-					}, //Query string data
-				}, function (error, response, body) {
-					if (!error && response.statusCode == 200) {
-						let weather = JSON.parse(body);
-						console.log(weather);
-						if (weather.hasOwnProperty("weather")) {
-							let desc = `Weather condition for today: ${weather["weather"][0]["description"]}`;
-							//sendTextMessage(sender, desc);
-							let temp = `Current temperature: ${weather["main"]["temp"]} °C`;
-							//sendTextMessage(sender, temp);
-							let temp_min = `Min temperature: ${weather["main"]["temp_min"]} °C`;
-							//sendTextMessage(sender, temp_min);
-							let temp_max = `Max temperature: ${weather["main"]["temp_max"]} °C`;
-							sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
-						} else {
-							sendTextMessage(sender,
-								`No weather forecast available for ${parameters["geo-city"]}`);
-						}
-					} else {
-						console.error(response.error);
-						sendTextMessage(sender,
-							`Could not retrieve weather details for ${parameters["geo-city"]}`);
-					}
-				});
+				};
 			} else {
 				sendTextMessage(sender, responseText);
 			}
