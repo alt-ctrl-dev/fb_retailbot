@@ -68,12 +68,11 @@ const sessionIds = new Map();
 
 // Index route
 app.get('/', function (req, res) {
-	res.send('Hello world, I am a chat bot')
+	res.send('<iframe height="430" width="350" src="https://bot.api.ai/89d0c5cf-b42e-4ece-b7e1-e77512e0fdad"></iframe>')
 })
 
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
-	console.log("request");
 	if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === config.FB_VERIFY_TOKEN) {
 		res.status(200).send(req.query['hub.challenge']);
 	} else {
@@ -142,10 +141,13 @@ function receivedMessage(event) {
 	var message = event.message;
 
 	if (!sessionIds.has(senderID)) {
-		sessionIds.set(senderID, uuid.v1());
+		let session = {
+			"id": uuid.v1(),
+			"operator_needed": false,
+			"name": ""
+		}
+		sessionIds.set(senderID, session);
 	}
-	//console.log("Received message for user %d and page %d at %d with message:", senderID, recipientID, timeOfMessage);
-	//console.log(JSON.stringify(message));
 
 	var isEcho = message.is_echo;
 	var messageId = message.mid;
