@@ -68,7 +68,7 @@ const sessionIds = new Map();
 
 // Index route
 app.get('/', function (req, res) {
-	res.send('<iframe height="430" width="350" src="https://bot.api.ai/89d0c5cf-b42e-4ece-b7e1-e77512e0fdad"></iframe>')
+	res.send('<iframe height="100%" width="100%" src="https://bot.api.ai/89d0c5cf-b42e-4ece-b7e1-e77512e0fdad"></iframe>')
 })
 
 // for Facebook verification
