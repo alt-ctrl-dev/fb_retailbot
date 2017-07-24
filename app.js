@@ -231,9 +231,8 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 				}, function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						let weather = JSON.parse(body);
-						console.log(weather);
 						if (weather.hasOwnProperty("forecast")) {
-							let image_url = `http://${weather["forecast"]["forecastday"][0]["day"]["condition"]["icon"]}`;
+							let image_url = `http:${weather["forecast"]["forecastday"][0]["day"]["condition"]["icon"]}`;
 							sendImageMessage(sender, image_url)
 							let desc = `Weather condition for ${weather["forecast"]["forecastday"][0]["date"]}: ${weather["forecast"]["forecastday"][0]["day"]["condition"]["text"]}`;
 							//sendTextMessage(sender, desc);
