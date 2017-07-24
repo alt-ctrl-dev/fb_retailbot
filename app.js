@@ -217,7 +217,7 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 		case "current-weather":
 		case "get-current-weather":
 			if (parameters.hasOwnProperty("geo-city") && parameters["geo-city"] != '') {
-				qString = {
+				let qString = {
 					key: config.WEATHER_API_KEY,
 					q: parameters["geo-city"]
 				}
