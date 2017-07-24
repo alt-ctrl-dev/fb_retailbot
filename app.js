@@ -235,7 +235,7 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 						if (weather.hasOwnProperty("forecast")) {
 							let image_url = `http://${weather["forecast"]["forecastday"][0]["day"]["condition"]["icon"]}`;
 							sendImageMessage(sender, image_url)
-							let desc = `Weather condition for today: ${weather["forecast"]["forecastday"][0]["day"]["condition"]["text"]}`;
+							let desc = `Weather condition for ${weather["forecast"]["forecastday"][0]["date"]}: ${weather["forecast"]["forecastday"][0]["day"]["condition"]["text"]}`;
 							//sendTextMessage(sender, desc);
 							let temp = `Current temperature: ${weather["forecast"]["forecastday"][0]["day"]["avgtemp_c"]} °C`;
 							//sendTextMessage(sender, temp);
@@ -899,7 +899,10 @@ function callSendAPI(messageData) {
 					recipientId);
 			}
 		} else {
-			console.error("Failed calling Send API", error.message);
+			console.error("Failed calling Send API");
+			console.error(error);
+			console.error("Response");
+			console.error(response);
 		}
 	});
 }
