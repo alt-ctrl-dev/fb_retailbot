@@ -241,8 +241,7 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 							let temp_min = `Min temperature: ${weather["forecast"]["forecastday"][0]["day"]["mintemp_c"]} °C`;
 							//sendTextMessage(sender, temp_min);
 							let temp_max = `Max temperature: ${weather["forecast"]["forecastday"][0]["day"]["maxtemp_c"]} °C`;
-							setTimeout(sendTextMessage.bind(null, sender, `${desc} ${temp} ${temp_min} ${temp_max}`), 500);
-
+							sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
 						} else {
 							sendTextMessage(sender,
 								`No weather forecast available for ${parameters["geo-city"]}`);
