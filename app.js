@@ -508,10 +508,10 @@ function handleApiAiResponse(sender, response) {
 }
 
 function sendToApiAi(sender, text) {
-
+	let sessID = sessionIds.get(sender);
 	sendTypingOn(sender);
 	let apiaiRequest = apiAiService.textRequest(text, {
-		sessionId: sessionIds.get(sender)
+		sessionId: sessID.id
 	});
 
 	apiaiRequest.on('response', (response) => {
