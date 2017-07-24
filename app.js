@@ -465,7 +465,7 @@ function handleApiAiResponse(sender, response) {
 		let cardTypes = [];
 		let timeout = 0;
 		for (var i = 0; i < messages.length; i++) {
-
+			console.log(messages[i])
 			if (previousType == 1 && (messages[i].type != 1 || i == messages.length - 1)) {
 				console.log("(previousType == 1 && (messages[i].type != 1 || i == messages.length - 1))")
 				console.log(`(${previousType} == 1 && (${messages[i].type} != 1 || i == ${messages.length - 1}))`)
