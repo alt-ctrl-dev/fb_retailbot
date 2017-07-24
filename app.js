@@ -217,25 +217,31 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 		case "current-weather":
 		case "get-current-weather":
 			if (parameters.hasOwnProperty("geo-city") && parameters["geo-city"] != '') {
+				qString = {
+					key: config.WEATHER_API_KEY,
+					q: parameters["geo-city"]
+				}
+				if (parameters.hasOwnProperty("date") && parameters["date"] != '') {
+					qString["dt"] = parameters["date"]
+				}
+
 				request({
-					url: 'http://api.openweathermap.org/data/2.5/weather', //URL to hit
-					qs: {
-						appid: config.WEATHER_API_KEY,
-						q: parameters["geo-city"],
-						units: "metric"
-					}, //Query string data
+					url: 'http://api.apixu.com/v1/forecast.json', //URL to hit
+					qs: qString, //Query string data
 				}, function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 						let weather = JSON.parse(body);
 						console.log(weather);
-						if (weather.hasOwnProperty("weather")) {
-							let desc = `Weather condition for today: ${weather["weather"][0]["description"]}`;
+						if (weather.hasOwnProperty("forecast")) {
+							let image_url = `http://${weather["forecast"]["forecastday"][0]["day"]["condition"]["icon"]}`;
+							sendImageMessage(sender, image_url)
+							let desc = `Weather condition for today: ${weather["forecast"]["forecastday"][0]["day"]["condition"]["text"]}`;
 							//sendTextMessage(sender, desc);
-							let temp = `Current temperature: ${weather["main"]["temp"]} °C`;
+							let temp = `Current temperature: ${weather["forecast"]["forecastday"][0]["day"]["avgtemp_c"]} °C`;
 							//sendTextMessage(sender, temp);
-							let temp_min = `Min temperature: ${weather["main"]["temp_min"]} °C`;
+							let temp_min = `Min temperature: ${weather["forecast"]["forecastday"][0]["day"]["mintemp_c"]} °C`;
 							//sendTextMessage(sender, temp_min);
-							let temp_max = `Max temperature: ${weather["main"]["temp_max"]} °C`;
+							let temp_max = `Max temperature: ${weather["forecast"]["forecastday"][0]["day"]["maxtemp_c"]} °C`;
 							sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
 						} else {
 							sendTextMessage(sender,
