@@ -1,6 +1,7 @@
 'use strict'
 
 const request = require('request');
+const Utils = require("./Utils")
 
 class FacebookHandler {
     constructor(messageRouter) {
@@ -15,7 +16,7 @@ class FacebookHandler {
         return process.env.FB_PAGE_TOKEN
     }
 
-    get FB_VERIFY_TOKEN(){
+    get FB_VERIFY_TOKEN() {
         return process.env.FB_VERIFY_TOKEN;
     }
 
@@ -42,10 +43,10 @@ class FacebookHandler {
         var quickReply = message.quick_reply;
 
         if (isEcho) {
-            handleEcho(messageId, appId, metadata);
+            this.handleEcho(messageId, appId, metadata);
             return;
         } else if (quickReply) {
-            handleQuickReply(senderID, quickReply, messageId);
+            this.handleQuickReply(senderID, quickReply, messageId);
             return;
         }
 
@@ -53,13 +54,13 @@ class FacebookHandler {
             //send message to api.ai
             sendToApiAi(senderID, messageText);
         } else if (messageAttachments) {
-            handleMessageAttachments(messageAttachments, senderID);
+            this.handleMessageAttachments(messageAttachments, senderID);
         }
     }
 
     handleMessageAttachments(messageAttachments, senderID) {
         //for now just reply
-        sendTextMessage(senderID, "Attachment received. Thank you.");
+        this.sendTextMessage(senderID, "Attachment received. Thank you.");
     }
 
     handleQuickReply(senderID, quickReply, messageId) {
@@ -87,7 +88,7 @@ class FacebookHandler {
             },
             message: {
                 text: text,
-                metadata: isDefined(metadata) ?
+                metadata: Utils.isDefined(metadata) ?
                     metadata : '',
                 quick_replies: replies
             }
@@ -109,7 +110,7 @@ class FacebookHandler {
             sender_action: "mark_seen"
         };
 
-        callSendAPI(messageData);
+        this.callSendAPI(messageData);
     }
 
     /*
@@ -187,7 +188,7 @@ class FacebookHandler {
                 if (user.first_name) {
                     console.log("FB user: %s %s, %s", user.first_name, user.last_name, user.gender);
 
-                    sendTextMessage(userId, "Welcome " + user.first_name + '!');
+                    this.sendTextMessage(userId, "Welcome " + user.first_name + '!');
                 } else {
                     console.log("Cannot get data for fb user with id", userId);
                 }
@@ -254,7 +255,7 @@ class FacebookHandler {
                 break;
             case 'CHAT':
                 //user wants to chat
-                sendTextMessage(senderID, "I love chatting too. Do you have any other questions for me?");
+                this.sendTextMessage(senderID, "I love chatting too. Do you have any other questions for me?");
                 break;
             case 'CONTACT_INFO':
                 //TODO user wants Contact Info
@@ -273,7 +274,7 @@ class FacebookHandler {
 
             default:
                 //unindentified payload
-                sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
+                this.sendTextMessage(senderID, "I'm not sure what you want. Can you be more specific?");
                 break;
 
         }
@@ -369,7 +370,7 @@ class FacebookHandler {
 
         // When an authentication is received, we'll send a message back to the sender
         // to let them know it was successful.
-        sendTextMessage(senderID, "Authentication successful");
+        this.sendTextMessage(senderID, "Authentication successful");
     }
 
     /*
@@ -401,6 +402,19 @@ class FacebookHandler {
                 throw new Error("Couldn't validate the request signature.");
             }
         }
+    }
+
+    sendTextMessage(recipientId, text) {
+        console.log(`sending message to ${text} to ${recipientId}`);
+        var messageData = {
+            recipient: {
+                id: recipientId
+            },
+            message: {
+                text: text
+            }
+        }
+        this.callSendAPI(messageData);
     }
 }
 
