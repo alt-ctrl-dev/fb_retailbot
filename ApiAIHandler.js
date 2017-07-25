@@ -1,25 +1,15 @@
 'use strict'
 const APIAiService = require('apiai');
 const request = require('request');
+const Utils = require("./Utils");
 
 class ApiAIHandler {
-    constructor() {
+    constructor(messageRouter, facebookHandler) {
+        this.router = messageRouter;
         this.apiAiService = APIAiService(process.env.API_AI_CLIENT_ACCESS_TOKEN, {
             language: "en",
             requestSource: "fb"
         });
-    }
-    sendTextMessage(recipientId, text) {
-        console.log(`sending message to ${text} to ${recipientId}`);
-        var messageData = {
-            recipient: {
-                id: recipientId
-            },
-            message: {
-                text: text
-            }
-        }
-        callSendAPI(messageData);
     }
 
     /*
@@ -212,12 +202,12 @@ class ApiAIHandler {
                     let account_data = require("./data.js");
 
                     if (account_data.account.findIndex((id) => parameters["accountid"] === id) >= 0) {
-                        sendTextMessage(sender, responseText);
+                        this.facebookHandler.sendTextMessage(sender, responseText);
                     } else {
-                        sendTextMessage(sender, `No matching account ID exist. Move-in to ${parameters["address"]} for ${parameters["date"]} will be cancelled`);
+                        this.facebookHandler.sendTextMessage(sender, `No matching account ID exist. Move-in to ${parameters["address"]} for ${parameters["date"]} will be cancelled`);
                     };
                 } else {
-                    sendTextMessage(sender, responseText);
+                    this.facebookHandler.sendTextMessage(sender, responseText);
                 }
                 break;
 
@@ -243,21 +233,21 @@ class ApiAIHandler {
                                 let temp_min = `Min temperature: ${weather["main"]["temp_min"]} °C`;
                                 //sendTextMessage(sender, temp_min);
                                 let temp_max = `Max temperature: ${weather["main"]["temp_max"]} °C`;
-                                sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
+                                this.facebookHandler.sendTextMessage(sender, `${desc} ${temp} ${temp_min} ${temp_max}`);
                             } else {
-                                sendTextMessage(sender, `No weather forecast available for ${parameters["geo-city"]}`);
+                                this.facebookHandler.sendTextMessage(sender, `No weather forecast available for ${parameters["geo-city"]}`);
                             }
                         } else {
                             console.error(response.error);
-                            sendTextMessage(sender, `Could not retrieve weather details for ${parameters["geo-city"]}`);
+                            this.facebookHandler.sendTextMessage(sender, `Could not retrieve weather details for ${parameters["geo-city"]}`);
                         }
                     });
                 } else {
-                    sendTextMessage(sender, responseText);
+                    this.facebookHandler.sendTextMessage(sender, responseText);
                 }
                 break;
             case "faq-delivery":
-                sendTextMessage(sender, responseText);
+                this.facebookHandler.sendTextMessage(sender, responseText);
                 sendTypingOn(sender);
 
                 //ask what user wants to do next
@@ -295,25 +285,25 @@ class ApiAIHandler {
                         "payload": "Not Interested"
                     }]
 
-                    sendQuickReply(sender, responseText, reply)
+                    this.facebookHandler.sendQuickReply(sender, responseText, reply)
                 }
                 break;
 
             case "detailed-application":
-                if (isDefined(contexts[0]) && (contexts[0].name == 'job_application' || contexts[0].name == 'job-application-details_dialog_context') && contexts[0].parameters) {
-                    let phone_number = (isDefined(contexts[0].parameters['phone-number']) && contexts[0].parameters['phone-number'] != '') ?
+                if (Utils.isDefined(contexts[0]) && (contexts[0].name == 'job_application' || contexts[0].name == 'job-application-details_dialog_context') && contexts[0].parameters) {
+                    let phone_number = (Utils.isDefined(contexts[0].parameters['phone-number']) && contexts[0].parameters['phone-number'] != '') ?
                         contexts[0].parameters['phone-number'] :
                         '';
-                    let user_name = (isDefined(contexts[0].parameters['user-name']) && contexts[0].parameters['user-name'] != '') ?
+                    let user_name = (Utils.isDefined(contexts[0].parameters['user-name']) && contexts[0].parameters['user-name'] != '') ?
                         contexts[0].parameters['user-name'] :
                         '';
-                    let previous_job = (isDefined(contexts[0].parameters['previous-job']) && contexts[0].parameters['previous-job'] != '') ?
+                    let previous_job = (Utils.isDefined(contexts[0].parameters['previous-job']) && contexts[0].parameters['previous-job'] != '') ?
                         contexts[0].parameters['previous-job'] :
                         '';
-                    let years_of_experience = (isDefined(contexts[0].parameters['years-of-experience']) && contexts[0].parameters['years-of-experience'] != '') ?
+                    let years_of_experience = (Utils.isDefined(contexts[0].parameters['years-of-experience']) && contexts[0].parameters['years-of-experience'] != '') ?
                         contexts[0].parameters['years-of-experience'] :
                         '';
-                    let job_vacancy = (isDefined(contexts[0].parameters['job-vacancy']) && contexts[0].parameters['job-vacancy'] != '') ?
+                    let job_vacancy = (Utils.isDefined(contexts[0].parameters['job-vacancy']) && contexts[0].parameters['job-vacancy'] != '') ?
                         contexts[0].parameters['job-vacancy'] :
                         '';
 
@@ -331,28 +321,28 @@ class ApiAIHandler {
                             "title": "More than 10 years",
                             "payload": "More than 10 years"
                         }];
-                        sendQuickReply(sender, responseText, replies);
+                        this.facebookHandler.sendQuickReply(sender, responseText, replies);
                     } else if (phone_number != '' && user_name != '' && previous_job != '' && years_of_experience != '' && job_vacancy != '') {
                         let emailContent = 'A new job enquiry from ' + user_name + ' for the job: ' + job_vacancy + '.<br> Previous job position: ' + previous_job + '..<br> Years of experience: ' + years_of_experience + '..<br> Phone number: ' + phone_number + '.';
 
                         sendEmail('New job application', emailContent);
-                        sendTextMessage(sender, responseText);
+                        this.facebookHandler.sendTextMessage(sender, responseText);
                     } else {
-                        sendTextMessage(sender, responseText);
+                        this.facebookHandler.sendTextMessage(sender, responseText);
                     }
                 }
 
                 break;
             default:
                 //unhandled action, just send back the text
-                sendTextMessage(sender, responseText);
+                this.facebookHandler.sendTextMessage(sender, responseText);
         }
     }
 
     handleMessage(message, sender) {
         switch (message.type) {
             case 0: //text
-                sendTextMessage(sender, message.speech);
+                this.facebookHandler.sendTextMessage(sender, message.speech);
                 break;
             case 2: //quick replies
                 let replies = [];
@@ -364,7 +354,7 @@ class ApiAIHandler {
                     }
                     replies.push(reply);
                 }
-                sendQuickReply(sender, message.title, replies);
+                this.facebookHandler.sendQuickReply(sender, message.title, replies);
                 break;
             case 3: //image
                 sendImageMessage(sender, message.imageUrl);
@@ -451,7 +441,7 @@ class ApiAIHandler {
 
         sendTypingOff(sender);
 
-        if (isDefined(messages) && (messages.length == 1 && messages[0].type != 0 || messages.length > 1)) {
+        if (Utils.isDefined(messages) && (messages.length == 1 && messages[0].type != 0 || messages.length > 1)) {
             let timeoutInterval = 1100;
             let previousType;
             let cardTypes = [];
@@ -480,42 +470,40 @@ class ApiAIHandler {
                 previousType = messages[i].type;
 
             }
-        } else if (responseText == '' && !isDefined(action)) {
+        } else if (responseText == '' && !Utils.isDefined(action)) {
             //api ai could not evaluate input.
             console.log('Unknown query' + response.result.resolvedQuery);
-            sendTextMessage(sender, "I'm not sure what you want. Can you be more specific?");
-        } else if (isDefined(action)) {
+            this.facebookHandler.sendTextMessage(sender, "I'm not sure what you want. Can you be more specific?");
+        } else if (Utils.isDefined(action)) {
             handleApiAiAction(sender, action, responseText, contexts, parameters);
-        } else if (isDefined(responseData) && isDefined(responseData.facebook)) {
+        } else if (Utils.isDefined(responseData) && Utils.isDefined(responseData.facebook)) {
             try {
                 console.log('Response as formatted message' + responseData.facebook);
-                sendTextMessage(sender, responseData.facebook);
+                this.facebookHandler.sendTextMessage(sender, responseData.facebook);
             } catch (err) {
-                sendTextMessage(sender, err.message);
+                this.facebookHandler.sendTextMessage(sender, err.message);
             }
-        } else if (isDefined(responseText)) {
-
-            sendTextMessage(sender, responseText);
+        } else if (Utils.isDefined(responseText)) {
+            this.facebookHandler.sendTextMessage(sender, responseText);
         }
     }
 
     sendToApiAi(sender, text) {
-
-        sendTypingOn(sender);
+        this.facebookHandler.sendTypingOn(sender);
         let apiaiRequest = apiAiService.textRequest(text, {
             sessionId: sessionIds.get(sender)
         });
 
         apiaiRequest.on('response', (response) => {
-            if (isDefined(response.result)) {
+            if (Utils.isDefined(response.result)) {
                 handleApiAiResponse(sender, response);
             }
         });
 
         apiaiRequest.on('error', (error) => {
             console.error(error)
-            sendTextMessage(sender, "Opps, something went wrong.");
-            sendTypingOff(sender);
+            this.facebookHandler.sendTextMessage(sender, "Opps, something went wrong.");
+            this.facebookHandler.sendTypingOff(sender);
         });
         apiaiRequest.end();
     }
