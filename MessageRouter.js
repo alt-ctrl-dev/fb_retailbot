@@ -1,12 +1,13 @@
 const FacebookHandler = require("./FacebookHandler")
 const ApiAIHandler = require("./ApiAIHandler")
 const bodyParser = require('body-parser');
-
+const CustomerStore = require("./CustomerStore")
 
 class MessageRouter {
     constructor() {
+        this.customerStore = new CustomerStore();
         this.fbHandler = new FacebookHandler(this);
-        this.apiaiHandler = new ApiAIHandler(this,this.fbHandler);
+        this.apiaiHandler = new ApiAIHandler(this);
     }
 
     handleRoutes(app) {
