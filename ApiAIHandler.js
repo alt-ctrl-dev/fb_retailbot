@@ -4,7 +4,7 @@ const request = require('request');
 const Utils = require("./Utils");
 
 class ApiAIHandler {
-    constructor(messageRouter, facebookHandler) {
+    constructor(messageRouter) {
         this.router = messageRouter;
         this.apiAiService = APIAiService(process.env.API_AI_CLIENT_ACCESS_TOKEN, {
             language: "en",
@@ -464,7 +464,7 @@ class ApiAIHandler {
                     cardTypes.push(messages[i]);
                 } else {
                     timeout = i * timeoutInterval;
-                    setTimeout(handleMessage.bind(null, messages[i], sender), timeout);
+                    setTimeout(this.handleMessage.bind(null, messages[i], sender), timeout);
                 }
 
                 previousType = messages[i].type;
@@ -473,37 +473,37 @@ class ApiAIHandler {
         } else if (responseText == '' && !Utils.isDefined(action)) {
             //api ai could not evaluate input.
             console.log('Unknown query' + response.result.resolvedQuery);
-            this.facebookHandler.sendTextMessage(sender, "I'm not sure what you want. Can you be more specific?");
+            this.messageRouter.facebookHandler.sendTextMessage(sender, "I'm not sure what you want. Can you be more specific?");
         } else if (Utils.isDefined(action)) {
-            handleApiAiAction(sender, action, responseText, contexts, parameters);
+            this.handleApiAiAction(sender, action, responseText, contexts, parameters);
         } else if (Utils.isDefined(responseData) && Utils.isDefined(responseData.facebook)) {
             try {
                 console.log('Response as formatted message' + responseData.facebook);
-                this.facebookHandler.sendTextMessage(sender, responseData.facebook);
+                this.messageRouter.facebookHandler.sendTextMessage(sender, responseData.facebook);
             } catch (err) {
-                this.facebookHandler.sendTextMessage(sender, err.message);
+                this.messageRouter.facebookHandler.sendTextMessage(sender, err.message);
             }
         } else if (Utils.isDefined(responseText)) {
-            this.facebookHandler.sendTextMessage(sender, responseText);
+            this.messageRouter.facebookHandler.sendTextMessage(sender, responseText);
         }
     }
 
     sendToApiAi(sender, text) {
-        this.facebookHandler.sendTypingOn(sender);
+        this.messageRouter.facebookHandler.sendTypingOn(sender);
         let apiaiRequest = apiAiService.textRequest(text, {
             sessionId: sessionIds.get(sender)
         });
 
         apiaiRequest.on('response', (response) => {
             if (Utils.isDefined(response.result)) {
-                handleApiAiResponse(sender, response);
+                this.handleApiAiResponse(sender, response);
             }
         });
 
         apiaiRequest.on('error', (error) => {
             console.error(error)
-            this.facebookHandler.sendTextMessage(sender, "Opps, something went wrong.");
-            this.facebookHandler.sendTypingOff(sender);
+            this.messageRouter.facebookHandler.sendTextMessage(sender, "Opps, something went wrong.");
+            this.messageRouter.facebookHandler.sendTypingOff(sender);
         });
         apiaiRequest.end();
     }
