@@ -67,7 +67,7 @@ class FacebookHandler {
         var quickReplyPayload = quickReply.payload;
         console.log("Quick reply for message %s with payload %s", messageId, quickReplyPayload);
         //send payload to api.ai
-        sendToApiAi(senderID, quickReplyPayload);
+        this.messageRouter.apiaiHandler.sendToApiAi(senderID, quickReplyPayload);
     }
 
     // https://developers.facebook.com/docs/messenger-platform/webhook-reference/mes
