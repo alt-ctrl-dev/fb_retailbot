@@ -3,7 +3,6 @@
 const apiai = require('apiai');
 
 const express = require('express');
-const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const request = require('request');
 const app = express();
@@ -11,6 +10,7 @@ const uuid = require('uuid');
 const node_path = require("path");
 
 
+const MessageRouter = require("./MessageRouter")
 // Messenger API parameters
 if (!process.env.FB_PAGE_TOKEN) {
 	throw new Error('missing FB_PAGE_TOKEN');
@@ -40,15 +40,21 @@ const config = {
 	WEATHER_API_KEY: process.env.WEATHER_API_KEY
 };
 
-app.set('port', (process.env.PORT || 5000))
 
-//verify request came from facebook
-app.use(bodyParser.json({
-	verify: verifyRequestSignature
-}));
+const messageRouter = new MessageRouter(config);
 
 //serve static files in the public directory
 app.use(express.static('public'));
+app.use('/static', express.static(node_path.join(__dirname, 'public')))
+app.set('port', (process.env.PORT || 5000))
+
+messageRouter.handleRoutes(app);
+
+// for Facebook verification
+//verify request came from facebook
+app.use(bodyParser.json({
+	verify: messageRouter.verifyRequestSignature
+}));
 
 // Process application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({
@@ -57,17 +63,6 @@ app.use(bodyParser.urlencoded({
 
 // Process application/json
 app.use(bodyParser.json())
-
-
-
-
-const apiAiService = apiai(config.API_AI_CLIENT_ACCESS_TOKEN, {
-	language: "en",
-	requestSource: "fb"
-});
-const sessionIds = new Map();
-
-app.use('/static', express.static(node_path.join(__dirname, 'public')))
 
 // Index route
 app.get('/', function (req, res) {
@@ -89,10 +84,12 @@ app.get('/temperature', function (req, res) {
 	res.sendFile(`${__dirname}/static/temperature.html`)
 })
 
-// for Facebook verification
-app.get('/webhook/', function (req, res) {
+app.get("/webhook", (req, res) => {
+	console.log("request");
 	if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === config.FB_VERIFY_TOKEN) {
-		res.status(200).send(req.query['hub.challenge']);
+		res
+			.status(200)
+			.send(req.query['hub.challenge']);
 	} else {
 		console.error("Failed validation. Make sure the validation tokens match.");
 		res.sendStatus(403);
@@ -102,97 +99,73 @@ app.get('/webhook/', function (req, res) {
 /*
  * All callbacks for Messenger are POST-ed. They will be sent to the same
  * webhook. Be sure to subscribe your app to your page to receive callbacks
- * for your page. 
+ * for your page.
  * https://developers.facebook.com/docs/messenger-platform/product-overview/setup#subscribe_app
  *
  */
-app.post('/webhook/', function (req, res) {
+app.post("/webhook", (req, res) => {
 	var data = req.body;
-	console.log(JSON.stringify(data));
-
-
 
 	// Make sure this is a page subscription
-	if (data.object == 'page') {
+	if (data.object == 'page' && data.entry) {
 
-		// Iterate over each entry
-		// There may be multiple if batched
-		data.entry.forEach(function (pageEntry) {
-			var pageID = pageEntry.id;
-			var timeOfEvent = pageEntry.time;
+		// Iterate over each entry There may be multiple if batched
+		data
+			.entry
+			.forEach(function (pageEntry) {
+				var pageID = pageEntry.id;
+				var timeOfEvent = pageEntry.time;
 
-			// Iterate over each messaging event
-			pageEntry.messaging.forEach(function (messagingEvent) {
-				if (messagingEvent.optin) {
-					receivedAuthentication(messagingEvent);
-				} else if (messagingEvent.message) {
-					receivedMessage(messagingEvent);
-				} else if (messagingEvent.delivery) {
-					receivedDeliveryConfirmation(messagingEvent);
-				} else if (messagingEvent.postback) {
-					receivedPostback(messagingEvent);
-				} else if (messagingEvent.read) {
-					receivedMessageRead(messagingEvent);
-				} else if (messagingEvent.account_linking) {
-					receivedAccountLink(messagingEvent);
-				} else {
-					console.log("Webhook received unknown messagingEvent: ", messagingEvent);
-				}
+				// Iterate over each messaging event
+				pageEntry
+					.messaging
+					.forEach(function (messagingEvent) {
+						if (messagingEvent.optin) {
+							messageRouter.receivedAuthentication(messagingEvent);
+						} else if (messagingEvent.message) {
+							messageRouter.receivedMessage(messagingEvent);
+						} else if (messagingEvent.delivery) {
+							messageRouter.receivedDeliveryConfirmation(messagingEvent);
+						} else if (messagingEvent.postback) {
+							messageRouter.receivedPostback(messagingEvent);
+						} else if (messagingEvent.read) {
+							messageRouter.receivedMessageRead(messagingEvent);
+						} else if (messagingEvent.account_linking) {
+							messageRouter.receivedAccountLink(messagingEvent);
+						} else {
+							console.log("Webhook received unknown messagingEvent: ", messagingEvent);
+						}
+					});
 			});
-		});
-
-		// Assume all went well.
-		// You must send back a 200, within 20 seconds
-		res.sendStatus(200);
 	}
+	// Assume all went well. You must send back a 200, within 20 seconds
+	res.sendStatus(200);
 });
 
+// Spin up the server
+app.listen(app.get('port'), function () {
+	console.log('running on port', app.get('port'))
+})
 
 
 
 
-function receivedMessage(event) {
-
-	var senderID = event.sender.id;
-	var recipientID = event.recipient.id;
-	var timeOfMessage = event.timestamp;
-	var message = event.message;
-
-	if (!sessionIds.has(senderID)) {
-		let session = {
-			"id": uuid.v1(),
-			"operator_needed": false,
-			"name": ""
-		}
-		sessionIds.set(senderID, session);
-	}
-
-	var isEcho = message.is_echo;
-	var messageId = message.mid;
-	var appId = message.app_id;
-	var metadata = message.metadata;
-
-	// You may get a text or attachment but not both
-	var messageText = message.text;
-	var messageAttachments = message.attachments;
-	var quickReply = message.quick_reply;
-
-	if (isEcho) {
-		handleEcho(messageId, appId, metadata);
-		return;
-	} else if (quickReply) {
-		handleQuickReply(senderID, quickReply, messageId);
-		return;
-	}
 
 
-	if (messageText) {
-		//send message to api.ai
-		sendToApiAi(senderID, messageText);
-	} else if (messageAttachments) {
-		handleMessageAttachments(messageAttachments, senderID);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+const sessionIds = new Map();
+
+
+
 
 
 function handleMessageAttachments(messageAttachments, senderID) {
@@ -200,18 +173,7 @@ function handleMessageAttachments(messageAttachments, senderID) {
 	sendTextMessage(senderID, "Attachment received. Thank you.");
 }
 
-function handleQuickReply(senderID, quickReply, messageId) {
-	var quickReplyPayload = quickReply.payload;
-	console.log("Quick reply for message %s with payload %s", messageId, quickReplyPayload);
-	//send payload to api.ai
-	sendToApiAi(senderID, quickReplyPayload);
-}
 
-//https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-echo
-function handleEcho(messageId, appId, metadata) {
-	// Just logging message echoes to console
-	console.log("Received echo for message %s and app %d with metadata %s", messageId, appId, metadata);
-}
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
@@ -534,27 +496,6 @@ function handleApiAiResponse(sender, response) {
 
 		sendTextMessage(sender, responseText);
 	}
-}
-
-function sendToApiAi(sender, text) {
-	let sessID = sessionIds.get(sender);
-	sendTypingOn(sender);
-	let apiaiRequest = apiAiService.textRequest(text, {
-		sessionId: sessID.id
-	});
-
-	apiaiRequest.on('response', (response) => {
-		if (isDefined(response.result)) {
-			handleApiAiResponse(sender, response);
-		}
-	});
-
-	apiaiRequest.on('error', (error) => {
-		console.error(error)
-		sendTextMessage(sender, "Opps, something went wrong.");
-		sendTypingOff(sender);
-	});
-	apiaiRequest.end();
 }
 
 
@@ -1076,33 +1017,6 @@ function receivedAuthentication(event) {
 	sendTextMessage(senderID, "Authentication successful");
 }
 
-/*
- * Verify that the callback came from Facebook. Using the App Secret from 
- * the App Dashboard, we can verify the signature that is sent with each 
- * callback in the x-hub-signature field, located in the header.
- *
- * https://developers.facebook.com/docs/graph-api/webhooks#setup
- *
- */
-function verifyRequestSignature(req, res, buf) {
-	var signature = req.headers["x-hub-signature"];
-
-	if (!signature) {
-		throw new Error('Couldn\'t validate the signature.');
-	} else {
-		var elements = signature.split('=');
-		var method = elements[0];
-		var signatureHash = elements[1];
-
-		var expectedHash = crypto.createHmac(method, config.FB_APP_SECRET)
-			.update(buf)
-			.digest('hex');
-
-		if (signatureHash != expectedHash) {
-			throw new Error("Couldn't validate the request signature.");
-		}
-	}
-}
 
 function isDefined(obj) {
 	if (typeof obj == 'undefined') {
@@ -1115,8 +1029,3 @@ function isDefined(obj) {
 
 	return obj != null;
 }
-
-// Spin up the server
-app.listen(app.get('port'), function () {
-	console.log('running on port', app.get('port'))
-})
