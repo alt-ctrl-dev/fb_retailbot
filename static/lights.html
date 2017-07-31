@@ -92,12 +92,44 @@
             </div>
         </div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script>
         $(function () {
+
+            var socket = io.connect('http://localhost:5000/lights');
+
             $("#bedroom .power").click(function () {
                 $("#bedroom").toggleClass("active");
             });
+
+            var handleLights = function (data) {
+                try {
+                    if (!data.power || !data.room)
+                        throw new Error("missing values")
+                    if (data.power === "on") {
+                        $("#" + data.room).addClass("active");
+                        socket.emit('lights_response', {
+                            success: true
+                        });
+                    } else {
+                        $("#" + data.room).removeClass("active");
+                        socket.emit('lights_response', {
+                            success: true
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error", e, data)
+                    socket.emit('lights_response', {
+                        success: false,
+                        error: e
+                    });
+                }
+
+            }
+
+            // Attach all our event handlers
+            socket.on('lights_request', handleLights);
         });
     </script>
 </body>
