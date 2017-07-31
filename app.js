@@ -263,9 +263,10 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 					room: parameters["room"],
 					power: parameters["light-type"]
 				});
-			} else {
-				sendTextMessage(sender, responseText);
 			}
+
+			sendTextMessage(sender, responseText);
+
 			break;
 		case "move-in":
 			if ((parameters.hasOwnProperty("accountid") && parameters["accountid"] != '') &&
