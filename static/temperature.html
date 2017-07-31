@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Temperature</title>
+    <meta charset="utf-8">
+    <style>
+        h1 {
+            text-align: center
+        }
+
+        body {
+            background: #7da4b7;
+        }
+
+        .label {
+            font-size: 22.5px;
+            fill: #ffffff;
+            text-anchor: middle;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .face {
+            stroke: #c8c8c8;
+            stroke-width: 2;
+        }
+
+        .minorTicks {
+            stroke-width: 2;
+            stroke: white;
+        }
+
+        .majorTicks {
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .gauge-container {
+            border: 1px solid black;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-around;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Temperature</h1>
+    <div class="container">
+        <div class="gauge-container">
+            <p class="label">Bed Room</p>
+            <svg id="bedroom" width="300" height="300"></svg>
+        </div>
+        <div class="gauge-container">
+            <p class="label">Living Room</p>
+            <svg id="livingroom" width="300" height="300"></svg>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="viz.min.js"></script>
+    <script>
+        var bedroomsvg = d3.select("#bedroom");
+        var bedroom_g = bedroomsvg.append("g").attr("transform", "translate(150,150)");
+        var bedroom_domain = [0, 100];
+
+        var bedroom_gg = viz.gg()
+            .domain(bedroom_domain)
+            .outerRadius(150)
+            .innerRadius(15)
+            .value(0.5 * (bedroom_domain[1] + bedroom_domain[0]))
+            .duration(1000);
+
+        bedroom_gg.defs(bedroomsvg);
+        bedroom_g.call(bedroom_gg);
+
+        d3.select(self.frameElement).style("height", "300px");
+        setInterval(function () {
+            bedroom_gg.setNeedle(bedroom_domain[0] + Math.random() * (bedroom_domain[1] - bedroom_domain[0]));
+        }, 2000);
+    </script>
+
+    <script>
+        var livingroomsvg = d3.select("#livingroom");
+        var livingroom_g = livingroomsvg.append("g").attr("transform", "translate(150,150)");
+        var livingroom_domain = [0, 100];
+
+        var livingroom_gg = viz.gg()
+            .domain(livingroom_domain)
+            .outerRadius(150)
+            .innerRadius(15)
+            .value(0.5 * (livingroom_domain[1] + livingroom_domain[0]))
+            .duration(1000);
+
+        livingroom_gg.defs(livingroomsvg);
+        livingroom_g.call(livingroom_gg);
+
+        d3.select(self.frameElement).style("height", "300px");
+        // setInterval(function () {
+        //     livingroom_gg.setNeedle(livingroom_domain[0] + Math.random() * (livingroom_domain[1] -
+        //         livingroom_domain[0]));
+        // }, 2000);
+    </script>
+</body>
+
+</html>
