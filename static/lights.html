@@ -97,10 +97,13 @@
     <script>
         $(function () {
 
-            var socket = io.connect('http://localhost:5000/lights');
+            var socket = io.connect('https://ergonbot.herokuapp.com/lights');
 
             $("#bedroom .power").click(function () {
                 $("#bedroom").toggleClass("active");
+            });
+            $("#livingroom .power").click(function () {
+                $("#livingroom").toggleClass("active");
             });
 
             var handleLights = function (data) {
