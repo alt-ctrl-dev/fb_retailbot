@@ -40,6 +40,12 @@ const config = {
 	WEATHER_API_KEY: process.env.WEATHER_API_KEY
 };
 
+
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
+
+
+
 app.set('port', (process.env.PORT || 5000))
 
 //verify request came from facebook
@@ -147,7 +153,40 @@ app.post('/webhook/', function (req, res) {
 	}
 });
 
+// Spin up the server
+// app.listen(app.get('port'), function () {
+// 	console.log('running on port', app.get('port'))
+// })
 
+server.listen(app.get('port'), function () {
+	console.log('running on port', app.get('port'))
+})
+
+var lights = io
+	.of('/lights')
+	.on('connection', function (socket) {
+		console.log(`new socket for lights = ${socket.id}`);
+		// socket.emit('lights_request', {
+		// 	that: 'only',
+		// 	'/chat': 'will get'
+		// });
+		// lights.emit('a message', {
+		// 	everyone: 'in',
+		// 	'/chat': 'will get'
+		// });
+		socket.on('disconnect', function () {
+			console.log(`${socket.id} for lights disconnected`);
+		});
+	});
+
+var temperature = io
+	.of('/temperature')
+	.on('connection', function (socket) {
+		console.log(`new socket for temperature = ${socket.id}`);
+		socket.on('disconnect', function () {
+			console.log(`${socket.id} for temperature disconnected`);
+		});
+	});
 
 
 
@@ -215,6 +254,19 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
+		case "room-lighting":
+			console.log("Room lighting")
+			console.log(parameters)
+			if ((parameters.hasOwnProperty("room") && parameters["room"] != '') &&
+				(parameters.hasOwnProperty("light-type") && parameters["light-type"] != '')) {
+				lights.emit('lights_request', {
+					room: parameters["room"],
+					power: parameters["light-type"]
+				});
+			} else {
+				sendTextMessage(sender, responseText);
+			}
+			break;
 		case "move-in":
 			if ((parameters.hasOwnProperty("accountid") && parameters["accountid"] != '') &&
 				(parameters.hasOwnProperty("address") && parameters["address"] != '') &&
@@ -453,7 +505,7 @@ function handleCardMessages(messages, sender) {
 
 
 function handleApiAiResponse(sender, response) {
-	console.log(`handleApiAiResponse`)
+	// console.log(`handleApiAiResponse`)
 
 	let responseText = response.result.fulfillment.speech;
 	let responseData = response.result.fulfillment.data;
@@ -462,23 +514,23 @@ function handleApiAiResponse(sender, response) {
 	let contexts = response.result.contexts;
 	let parameters = response.result.parameters;
 
-	console.log(`responseText`)
-	console.log(responseText)
+	// console.log(`responseText`)
+	// console.log(responseText)
 
-	console.log(`responseData`)
-	console.log(responseData)
+	// console.log(`responseData`)
+	// console.log(responseData)
 
-	console.log(`messages`)
-	console.log(messages)
+	// console.log(`messages`)
+	// console.log(messages)
 
-	console.log(`action`)
-	console.log(action)
+	// console.log(`action`)
+	// console.log(action)
 
-	console.log(`contexts`)
-	console.log(contexts)
+	// console.log(`contexts`)
+	// console.log(contexts)
 
-	console.log(`parameters`)
-	console.log(parameters)
+	// console.log(`parameters`)
+	// console.log(parameters)
 
 	sendTypingOff(sender);
 
@@ -1115,8 +1167,3 @@ function isDefined(obj) {
 
 	return obj != null;
 }
-
-// Spin up the server
-app.listen(app.get('port'), function () {
-	console.log('running on port', app.get('port'))
-})
