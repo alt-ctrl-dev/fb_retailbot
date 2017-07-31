@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const request = require('request');
 const app = express();
 const uuid = require('uuid');
+const node_path = require("path");
 
 
 // Messenger API parameters
@@ -66,9 +67,26 @@ const apiAiService = apiai(config.API_AI_CLIENT_ACCESS_TOKEN, {
 });
 const sessionIds = new Map();
 
+app.use('/static', express.static(node_path.join(__dirname, 'public')))
+
 // Index route
 app.get('/', function (req, res) {
-	res.send('<iframe height="100%" width="100%" src="https://bot.api.ai/89d0c5cf-b42e-4ece-b7e1-e77512e0fdad"></iframe>')
+	res.send('Hello! Welcome to Retail chatbot')
+})
+
+// Operator route
+app.get('/operator', function (req, res) {
+	res.sendFile(`${__dirname}/static/operator.html`)
+})
+
+// Lights route
+app.get('/lights', function (req, res) {
+	res.sendFile(`${__dirname}/static/lights.html`)
+})
+
+// Temperature route
+app.get('/temperature', function (req, res) {
+	res.sendFile(`${__dirname}/static/temperature.html`)
 })
 
 // for Facebook verification
