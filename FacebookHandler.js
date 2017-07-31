@@ -52,7 +52,7 @@ class FacebookHandler {
         var message = event.message;
 
         //XXX
-        if (!sessionIds.has(senderID)) {
+        if (!this.customerStore.getOrCreateCustomer(senderID)) {
             let session = {
                 "id": uuid.v1(),
                 "operator_needed": false,
