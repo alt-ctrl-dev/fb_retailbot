@@ -254,9 +254,23 @@ function handleEcho(messageId, appId, metadata) {
 
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
+		case "room-temperature":
+			if ((parameters.hasOwnProperty("room") && parameters["room"] != '') &&
+				(parameters.hasOwnProperty("temperature") && parameters["temperature"] != '')) {
+				lights.emit('temp_request', {
+					room: parameters["room"],
+					temperature: parameters["temperature"]
+				});
+				lights.on("temp_response", (data) => {
+					if (data.success)
+						sendTextMessage(sender, responseText);
+					else
+						sendTextMessage(sender, error.message);
+				})
+			} else
+				sendTextMessage(sender, responseText);
+			break;
 		case "room-lighting":
-			console.log("Room lighting")
-			console.log(parameters)
 			if ((parameters.hasOwnProperty("room") && parameters["room"] != '') &&
 				(parameters.hasOwnProperty("light-type") && parameters["light-type"] != '')) {
 				lights.emit('lights_request', {
