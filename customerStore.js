@@ -14,19 +14,19 @@
 // Provides storage and retrieval of customer data with a promise-based API.
 // Storage is in-memory; modify to connect to a persistent datastore.
 class CustomerStore {
-  constructor () {
+  constructor() {
     this.customers = {};
   }
 
-  static get MODE_AGENT () {
+  static get MODE_AGENT() {
     return 'AGENT';
   }
 
-  static get MODE_OPERATOR () {
+  static get MODE_OPERATOR() {
     return 'OPERATOR';
   }
 
-  getOrCreateCustomer (customerId) {
+  getOrCreateCustomer(customerId) {
     if (!customerId || customerId.length === 0) {
       return Promise.reject(new Error('You must specify a customer id'));
     }
@@ -39,12 +39,12 @@ class CustomerStore {
       return this
         .setCustomer(customerId, {
           id: customerId,
-          mode: CustomerStore.MODE_AGENT
+          mode: CustomerStore.MODE_OPERATOR
         })
         .then((newCustomer) => {
           // Attach this temporary flag to indicate that the customer is
           // freshly created.
-          newCustomer.isNew = true;
+          newCustomer.isNew = false;
           return newCustomer;
         });
     }
@@ -52,7 +52,7 @@ class CustomerStore {
     return Promise.resolve(customerData);
   }
 
-  setCustomer (customerId, customerData) {
+  setCustomer(customerId, customerData) {
     console.log('CustomerStore.setCustomer called with ', customerData);
     if (!customerId || customerId.length === 0 || !customerData) {
       return Promise.reject(new Error('You must specify a customer id and provide data to store'));
@@ -65,13 +65,13 @@ class CustomerStore {
   }
 
   // This function could be modified to support persistent database storage
-  store (customerId, data) {
+  store(customerId, data) {
     // In this case we just simulate serialization to an actual datastore
     this.customers[customerId] = JSON.stringify(data);
   }
 
   // This function could be modified to support persistent database storage
-  retrieve (customerId) {
+  retrieve(customerId) {
     // In this case we just simulate deserialization from an actual datastore
     const customerData = this.customers[customerId];
     return customerData ? JSON.parse(customerData) : null;

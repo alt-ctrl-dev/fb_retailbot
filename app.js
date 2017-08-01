@@ -74,6 +74,9 @@ const apiAiService = apiai(config.API_AI_CLIENT_ACCESS_TOKEN, {
 	language: "en",
 	requestSource: "fb"
 });
+
+//XXX : Refactor this rubbish
+const apiAiApp = apiai(config.API_AI_CLIENT_ACCESS_TOKEN);
 const sessionIds = new Map();
 
 app.use('/static', express.static(node_path.join(__dirname, 'public')))
