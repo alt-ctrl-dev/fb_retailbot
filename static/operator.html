@@ -3,6 +3,7 @@
 
 <head>
   <title>Operator Interface</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     * {
       margin: 0;
@@ -31,7 +32,7 @@
       border: 0;
       padding: 10px;
       width: 90%;
-      margin-right: .5%;
+      margin-right: 1%;
     }
 
     form button {
@@ -96,6 +97,16 @@
 
     ul.chat-window li:nth-child(odd) {
       background: #eee;
+    }
+
+    @media (max-width: 750px) {
+      form input {
+        width: 87%;
+      }
+
+      form button {
+        width: 12%;
+      }
     }
   </style>
 </head>
