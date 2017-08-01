@@ -255,20 +255,16 @@ function handleEcho(messageId, appId, metadata) {
 function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 	switch (action) {
 		case "room-temperature":
+			console.log("room - temperature")
+			console.log(parameters)
 			if ((parameters.hasOwnProperty("room") && parameters["room"] != '') &&
 				(parameters.hasOwnProperty("temperature") && parameters["temperature"] != '')) {
 				temperature.emit('temp_request', {
 					room: parameters["room"],
 					temperature: parameters["temperature"]["amount"]
 				});
-				temperature.on("temp_response", (data) => {
-					if (data.success)
-						sendTextMessage(sender, responseText);
-					else
-						sendTextMessage(sender, error.message);
-				})
-			} else
-				sendTextMessage(sender, responseText);
+			}
+			sendTextMessage(sender, responseText);
 			break;
 		case "room-lighting":
 			if ((parameters.hasOwnProperty("room") && parameters["room"] != '') &&
