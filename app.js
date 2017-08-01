@@ -257,11 +257,11 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 		case "room-temperature":
 			if ((parameters.hasOwnProperty("room") && parameters["room"] != '') &&
 				(parameters.hasOwnProperty("temperature") && parameters["temperature"] != '')) {
-				lights.emit('temp_request', {
+				temperature.emit('temp_request', {
 					room: parameters["room"],
 					temperature: parameters["temperature"]
 				});
-				lights.on("temp_response", (data) => {
+				temperature.on("temp_response", (data) => {
 					if (data.success)
 						sendTextMessage(sender, responseText);
 					else
