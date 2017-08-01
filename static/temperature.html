@@ -63,26 +63,29 @@
             });
             google.charts.setOnLoadCallback(drawChart);
 
-            var data = google.visualization.arrayToDataTable([
-                ['Label', 'Value'],
-                ['Bedroom', 25],
-                ['Living room', 22]
-            ]);
-            var options = {
-                animation: {
-                    easing: "out"
-                },
-                width: 500,
-                height: 500,
-                minorTicks: 1,
-                min: domain[0],
-                max: domain[1]
-            };
-
-            var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
-
             function drawChart() {
+
+                var data = google.visualization.arrayToDataTable([
+                    ['Label', 'Value'],
+                    ['Bedroom', 25],
+                    ['Living room', 22]
+                ]);
+
+                var options = {
+                    animation: {
+                        easing: "out"
+                    },
+                    width: 500,
+                    height: 500,
+                    minorTicks: 1,
+                    min: domain[0],
+                    max: domain[1]
+                };
+
+                var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
+
                 chart.draw(data, options);
+
                 // setInterval(function () {
                 //     data.setValue(0, 1, domain[0] + Math.round((domain[1] - domain[0]) * Math.random()));
                 //     chart.draw(data, options);
@@ -91,42 +94,41 @@
                 //     data.setValue(1, 1, domain[0] + Math.round((domain[1] - domain[0]) * Math.random()));
                 //     chart.draw(data, options);
                 // }, 5000);
-            }
+                var socket = io.connect('https://eretailbot.herokuapp.com/temperature');
 
-            var socket = io.connect('https://eretailbot.herokuapp.com/temperature');
+                var handleTemp = function (server_data) {
+                    try {
+                        if (!server_data.temperature || !server_data.room)
+                            throw new Error("missing values")
+                        if (server_data.temperature < domain[0] || server_data.temperature > domain[1])
+                            throw new Error("temperature not possible")
 
-            var handleTemp = function (server_data) {
-                try {
-                    if (!server_data.temperature || !server_data.room)
-                        throw new Error("missing values")
-                    if (server_data.temperature < domain[0] || server_data.temperature > domain[1])
-                        throw new Error("temperature not possible")
+                        switch (server_data.room) {
+                            case "livingroom":
+                                data.setValue(1, 1, server_data.temperature);
+                                break
+                            case "bedroom":
+                                data.setValue(0, 1, server_data.temperature);
+                                break
+                        };
+                        chart.draw(data, options);
+                        socket.emit('temp_response', {
+                            success: true
+                        });
 
-                    switch (server_data.room) {
-                        case "livingroom":
-                            data.setValue(1, 1, server_data.temperature);
-                            break
-                        case "bedroom":
-                            data.setValue(0, 1, server_data.temperature);
-                            break
-                    };
-                    chart.draw(data, options);
-                    socket.emit('temp_response', {
-                        success: true
-                    });
+                    } catch (e) {
+                        console.error("Error", e, server_data)
+                        socket.emit('temp_response', {
+                            success: false,
+                            error: e
+                        });
+                    }
 
-                } catch (e) {
-                    console.error("Error", e, server_data)
-                    socket.emit('temp_response', {
-                        success: false,
-                        error: e
-                    });
                 }
 
+                // Attach all our event handlers
+                socket.on('temp_request', handleTemp);
             }
-
-            // Attach all our event handlers
-            socket.on('temp_request', handleTemp);
         });
     </script>
 </body>
