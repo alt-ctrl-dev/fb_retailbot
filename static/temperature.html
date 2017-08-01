@@ -68,24 +68,21 @@
                 ['Bedroom', 25],
                 ['Living room', 22]
             ]);
+            var options = {
+                animation: {
+                    easing: "out"
+                },
+                width: 500,
+                height: 500,
+                minorTicks: 1,
+                min: domain[0],
+                max: domain[1]
+            };
+
+            var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
 
             function drawChart() {
-
-                var options = {
-                    animation: {
-                        easing: "out"
-                    },
-                    width: 500,
-                    height: 500,
-                    minorTicks: 1,
-                    min: domain[0],
-                    max: domain[1]
-                };
-
-                var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
-
                 chart.draw(data, options);
-
                 // setInterval(function () {
                 //     data.setValue(0, 1, domain[0] + Math.round((domain[1] - domain[0]) * Math.random()));
                 //     chart.draw(data, options);
