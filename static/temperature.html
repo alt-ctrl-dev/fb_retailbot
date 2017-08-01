@@ -63,13 +63,13 @@
             });
             google.charts.setOnLoadCallback(drawChart);
 
-            function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Label', 'Value'],
+                ['Bedroom', 25],
+                ['Living room', 22]
+            ]);
 
-                var data = google.visualization.arrayToDataTable([
-                    ['Label', 'Value'],
-                    ['Bedroom', 25],
-                    ['Living room', 22]
-                ]);
+            function drawChart() {
 
                 var options = {
                     animation: {
