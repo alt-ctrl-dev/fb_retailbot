@@ -263,6 +263,9 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 					room: parameters["room"],
 					temperature: parameters["temperature"]["amount"]
 				});
+				temperature.on("temp_response", (data) => {
+					console.log("temp_response", data)
+				})
 			}
 			sendTextMessage(sender, responseText);
 			break;
