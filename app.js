@@ -66,6 +66,9 @@ app.use(bodyParser.json())
 
 
 
+// Load our custom classes
+const CustomerStore = require('./customerStore.js');
+const MessageRouter = require('./messageRouter.js');
 
 const apiAiService = apiai(config.API_AI_CLIENT_ACCESS_TOKEN, {
 	language: "en",
@@ -74,6 +77,21 @@ const apiAiService = apiai(config.API_AI_CLIENT_ACCESS_TOKEN, {
 const sessionIds = new Map();
 
 app.use('/static', express.static(node_path.join(__dirname, 'public')))
+
+// Instantiate our app
+const customerStore = new CustomerStore();
+const messageRouter = new MessageRouter(customerStore, apiAiApp, io.of('/customer'), io.of('/operator'));
+
+// Serve static html files for the customer and operator clients
+app.get('/customer', (req, res) => {
+	res.sendFile(`${__dirname}/static/customer.html`);
+});
+
+app.get('/operator', (req, res) => {
+	res.sendFile(`${__dirname}/static/operator.html`);
+});
+// Begin responding to websocket and http requests
+messageRouter.handleConnections();
 
 // Index route
 app.get('/', function (req, res) {
