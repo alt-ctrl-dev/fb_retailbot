@@ -282,7 +282,7 @@ function handleApiAiAction(sender, action, responseText, contexts, parameters) {
 				(parameters.hasOwnProperty("temperature") && parameters["temperature"] != '')) {
 				temperature.emit('temp_request', {
 					room: parameters["room"],
-					temperature: parameters["temperature"]["amount"]
+					temperature: parameters["temperature"]
 				});
 				temperature.on("temp_response", (data) => {
 					console.log("temp_response", data)
