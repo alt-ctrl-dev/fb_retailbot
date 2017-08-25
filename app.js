@@ -106,6 +106,11 @@ app.get('/operator', function (req, res) {
 	res.sendFile(`${__dirname}/static/operator.html`)
 })
 
+// Privacy route
+app.get('/privacy', function (req, res) {
+	res.sendFile(`${__dirname}/static/privacy.html`)
+})
+
 // Lights route
 app.get('/lights', function (req, res) {
 	res.sendFile(`${__dirname}/static/lights.html`)
