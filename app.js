@@ -969,7 +969,7 @@ function greetUserText(userId) {
 				console.log("FB user: %s %s, %s",
 					user.first_name, user.last_name, user.gender);
 
-				sendTextMessage(userId, "Welcome " + user.first_name + '!');
+				sendTextMessage(userId, "Welcome " + user.first_name + '! Ask me to move in or get your latest bill. If you need any assistance type help.');
 			} else {
 				console.log("Cannot get data for fb user with id",
 					userId);
@@ -1035,7 +1035,7 @@ function receivedPostback(event) {
 	var payload = event.postback.payload;
 
 	switch (payload) {
-		case 'GET_STARTED':
+		case 'GET STARTED':
 			greetUserText(senderID);
 			break;
 		case 'JOB_APPLY':
