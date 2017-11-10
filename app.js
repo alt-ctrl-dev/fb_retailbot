@@ -121,6 +121,11 @@ app.get('/temperature', function (req, res) {
 	res.sendFile(`${__dirname}/static/temperature.html`)
 })
 
+// Temperature route
+app.get('/weather', function (req, res) {
+	res.send(JSON.parse(req));
+});
+
 // for Facebook verification
 app.get('/webhook/', function (req, res) {
 	if (req.query['hub.mode'] === 'subscribe' && req.query['hub.verify_token'] === config.FB_VERIFY_TOKEN) {
@@ -134,7 +139,7 @@ app.get('/webhook/', function (req, res) {
 /*
  * All callbacks for Messenger are POST-ed. They will be sent to the same
  * webhook. Be sure to subscribe your app to your page to receive callbacks
- * for your page. 
+ * for your page.
  * https://developers.facebook.com/docs/messenger-platform/product-overview/setup#subscribe_app
  *
  */
@@ -982,8 +987,8 @@ function greetUserText(userId) {
 }
 
 /*
- * Call the Send API. The message data goes in the body. If successful, we'll 
- * get the message id in a response 
+ * Call the Send API. The message data goes in the body. If successful, we'll
+ * get the message id in a response
  *
  */
 function callSendAPI(messageData) {
@@ -1021,17 +1026,17 @@ function callSendAPI(messageData) {
 /*
  * Postback Event
  *
- * This event is called when a postback is tapped on a Structured Message. 
+ * This event is called when a postback is tapped on a Structured Message.
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/postback-received
- * 
+ *
  */
 function receivedPostback(event) {
 	var senderID = event.sender.id;
 	var recipientID = event.recipient.id;
 	var timeOfPostback = event.timestamp;
 
-	// The 'payload' param is a developer-defined field which is set in a postback 
-	// button for Structured Messages. 
+	// The 'payload' param is a developer-defined field which is set in a postback
+	// button for Structured Messages.
 	var payload = event.postback.payload;
 
 	switch (payload) {
@@ -1047,7 +1052,7 @@ function receivedPostback(event) {
 			sendTextMessage(senderID, "I love chatting too. Do you have any other questions for me?");
 			break;
 		case 'CONTACT_INFO':
-			//TODO user wants Contact Info 
+			//TODO user wants Contact Info
 			let buttons = [{
 					type: "phone_number",
 					title: "Call us",
@@ -1081,7 +1086,7 @@ function receivedPostback(event) {
  *
  * This event is called when a previously-sent message has been read.
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-read
- * 
+ *
  */
 function receivedMessageRead(event) {
 	var senderID = event.sender.id;
@@ -1101,7 +1106,7 @@ function receivedMessageRead(event) {
  * This event is called when the Link Account or UnLink Account action has been
  * tapped.
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/account-linking
- * 
+ *
  */
 function receivedAccountLink(event) {
 	var senderID = event.sender.id;
@@ -1117,7 +1122,7 @@ function receivedAccountLink(event) {
 /*
  * Delivery Confirmation Event
  *
- * This event is sent to confirm the delivery of a message. Read more about 
+ * This event is sent to confirm the delivery of a message. Read more about
  * these fields at https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-delivered
  *
  */
@@ -1142,8 +1147,8 @@ function receivedDeliveryConfirmation(event) {
 /*
  * Authorization Event
  *
- * The value for 'optin.ref' is defined in the entry point. For the "Send to 
- * Messenger" plugin, it is the 'data-ref' field. Read more at 
+ * The value for 'optin.ref' is defined in the entry point. For the "Send to
+ * Messenger" plugin, it is the 'data-ref' field. Read more at
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/authentication
  *
  */
@@ -1153,9 +1158,9 @@ function receivedAuthentication(event) {
 	var timeOfAuth = event.timestamp;
 
 	// The 'ref' field is set in the 'Send to Messenger' plugin, in the 'data-ref'
-	// The developer can set this to an arbitrary value to associate the 
+	// The developer can set this to an arbitrary value to associate the
 	// authentication callback with the 'Send to Messenger' click event. This is
-	// a way to do account linking when the user clicks the 'Send to Messenger' 
+	// a way to do account linking when the user clicks the 'Send to Messenger'
 	// plugin.
 	var passThroughParam = event.optin.ref;
 
@@ -1169,8 +1174,8 @@ function receivedAuthentication(event) {
 }
 
 /*
- * Verify that the callback came from Facebook. Using the App Secret from 
- * the App Dashboard, we can verify the signature that is sent with each 
+ * Verify that the callback came from Facebook. Using the App Secret from
+ * the App Dashboard, we can verify the signature that is sent with each
  * callback in the x-hub-signature field, located in the header.
  *
  * https://developers.facebook.com/docs/graph-api/webhooks#setup
